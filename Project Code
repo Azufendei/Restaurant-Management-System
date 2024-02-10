@@ -1,0 +1,249 @@
+
+import mysql.connector
+import random
+mydb = mysql.connector.connect(
+    host='localhost',
+    user='root',
+    password='76mysql31',
+    port='3306',
+    database='python_projectbhavesh'
+)
+print('*****************WELCOME TO THE CYBERIA RESTAURANT!***************')
+print('Press 1 if you are a customer, 2 if you are an Admin')
+def login():
+    hf = True
+
+    print("*************** LOGIN ******************")
+    while hf == True:
+        ID=int(input('Enter your customer ID '))
+        mycursor.execute("SELECT Password FROM customer WHERE CustomerID = {} ".format(ID))
+        Passver=mycursor.fetchall()
+        for i in Passver:
+            for j in i:
+                a=j
+        pswd=input('Enter password ')
+
+        if pswd==a:
+            print('Login Successful! ')
+            hf = False
+            return ID
+
+
+
+        else:
+            print('Incorrect ID or password')
+
+
+
+def customer():
+    print('First time visiting? press 1 to sign up!')
+    print('Returning Customer? press 2 to log in!')
+    td=int(input('Enter 1 or 2 '))
+
+
+    if td==1:
+        print("************ SIGN UP *****************")
+        Name=input("Enter Name: ")
+        State=input("Enter state: ")
+        Address=input("Enter address: ")
+        PhoneNo=int(input("Enter Phone Number: "))
+        CustomerID = random.randint(0, 100000)
+        vc=True
+        while vc==True:
+            Pasd = input('Create password ')
+            passconf = input('Confirm Password ')
+            if Pasd==passconf:
+                sql = 'INSERT INTO customer (CustomerID, CustomerName, State, Address, PhoneNo, Password) VALUES(%s, %s, %s, %s, %s, %s)'
+                val = (CustomerID, Name, State, Address, PhoneNo, Pasd)
+                mycursor.execute(sql, val)
+                mydb.commit()
+                print('Your CustomerID has been generated successfully and is:-', CustomerID)
+                #match ID with phone no in database incase customer forgets ID
+                print('Remember to keep  this ID for future transactions')
+                print('sign up successful')
+                vc=False
+            else:
+                print('passwords do not match try again')
+
+        ID=login()
+    else:
+        ID=login()
+
+
+    mycursor.execute('select*from dish')
+    menu = mycursor.fetchall()
+    column_names = [i[0] for i in mycursor.description]
+    print(column_names)
+    for i in menu:
+        print(i)
+
+    ans = True
+    list=[]
+    NoI=0
+    Food=[]
+
+    while ans == True:
+        dishid = int(input("Enter the Dish ID: "))
+        mycursor.execute("SELECT dish_name from dish WHERE dishID = {} ".format(dishid))
+        NoD = mycursor.fetchall()
+
+        qty = int(input("Enter quantity: "))
+        am=[dishid, qty, NoD]
+        list.append(am)
+        NoI=NoI+qty
+
+        ch = input("Do you want to add more Dishes? (y/n) ")
+        if ch!='y'and ch!='Y':
+
+             print('no of items=', NoI)
+             total = 0
+             print("Dish ID, Quantity, Dish name, price")
+             for item in list:
+                mycursor.execute("SELECT price from dish WHERE dishID = {} ".format(item[0]))
+                res = mycursor.fetchall()
+
+                # Converting tuple to integer
+                for i in res:
+                    for j in i:
+                        print(item,j)
+                        total = total + item[1]*j
+             #adding GST to total
+             total=total+total*18/100
+             print("Bill Amount after adding GST: ", total)
+             print('press 1 to confirm order')
+             print('press 2 to cancel order')
+             print('press 3 to add more items to your order')
+             final=int(input('Enter your choice '))
+             if final == 1:
+                 Order=random.randint(0, 1000)+ID
+                 orderdata='INSERT INTO ordertable (OrderID, CustomerID, BillAmount, NoOfItems) VALUES (%s, %s, %s, %s)'
+                 val = (Order, ID, total, NoI)
+                 mycursor.execute(orderdata, val)
+                 mydb.commit()
+
+                 print('Your order has successfully been placed!')
+                 ans = False
+             elif final == 2:
+                 print('Your order has been cancelled successfully')
+                 ans = False
+             else:
+                 ans = True
+    print('*****************Thank you for visiting!******************')
+
+
+
+def view():
+    krm=True
+    while krm==True:
+        print('***********************MAIN MENU**********************')
+        print('press 1 to view menu table')
+        print('press 2 to view customer table')
+        print('press 3 to view order table')
+        print('press 4 to add dishes to the menu')
+        print('press 5 to remove dishes from the menu')
+        print('press 6 to exit the main menu')
+
+        z=int(input('Enter choice: '))
+        if z==1:
+            print('*******************Menu Table*****************')
+            mycursor.execute('SELECT*FROM dish')
+            menu = mycursor.fetchall()
+            column_names = [i[0] for i in mycursor.description]
+            print(column_names)
+            for i in menu:
+                print(i)
+            br = int(input('press 1 to continue to main menu and 2 if you want to exit '))
+            if br != 1:
+                krm = False
+
+
+        elif z==2:
+            mycursor.execute('SELECT*from customer')
+            customerdetails = mycursor.fetchall()
+            column_names = [i[0] for i in mycursor.description]
+            print(column_names)
+            for i in customerdetails:
+                print(i)
+            br = int(input('press 1 to continue to main menu and 2 if you want to exit '))
+            if br != 1:
+                krm = False
+
+        elif z==3:
+            mycursor.execute('SELECT*from ordertable')
+            orderdetails = mycursor.fetchall()
+            column_names = [i[0] for i in mycursor.description]
+            print(column_names)
+            for i in orderdetails:
+                print(i)
+            br = int(input('press 1 to continue and 2 if you want to exit '))
+            if br != 1:
+                krm = False
+
+
+
+
+        elif z==4:
+            hr=True
+            while hr==True:
+                dishID=int(input('Enter Dish ID: '))
+                dishname=input('Enter Dish Name: ')
+                dishprice=int(input('Enter dish price: '))
+                sql = 'INSERT INTO dish (dishID, dish_name, price) VALUES(%s, %s, %s)'
+                val = (dishID, dishname, dishprice)
+                mycursor.execute(sql, val)
+                mydb.commit()
+                jj=input('do you wish to add more items into the menu?y/n')
+                if jj!='y' and jj!='Y':
+                    print('menu table updated')
+                    hr=False
+            br = int(input('Press 1 to continue to main menu and 2 if you want to exit '))
+            if br != 1:
+                krm = False
+
+        elif z==5:
+            arg=True
+            while arg==True:
+
+                mycursor.execute('SELECT dish_name FROM dish')
+                existdish=mycursor.fetchall()
+                print(existdish)
+                f=''
+                for i in existdish:
+                    for j in i:
+                        f=f+j
+                dishName=input('Enter the name of the dish you want to remove. ')
+                if dishName in f:
+                    sql = "DELETE FROM dish WHERE dish_name = '%s'"%dishName
+                    mycursor.execute(sql)
+                    mydb.commit()
+                    print('Update successful')
+                else:
+                     print('Input dish is already not in the menu')
+                conf=input('do you wish to continue deleting more items from the menu?y/n')
+                if conf=='n' or conf=='N':
+                    arg=False
+            br = int(input('press 1 to continue to main menu and 2 if you want to exit '))
+            if br != 1:
+                krm = False
+
+        else:
+            krm=False
+            print("Exit successful")
+
+
+
+
+mycursor = mydb.cursor()
+passwd=1359
+user=int(input("Enter 1 or 2:  "))
+if user==1:
+    customer()
+elif user==2:
+    hrt=int(input('Enter password '))
+    if hrt==passwd:
+        print('access granted!')
+        view()
+    else:
+        print('access denied')
+else:
+    print("invalid access")
