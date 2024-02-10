@@ -4,7 +4,7 @@ import random
 mydb = mysql.connector.connect(
     host='localhost',
     user='root',
-    password='76mysql31',
+    password='password',
     port='3306',
     database='python_projectbhavesh'
 )
